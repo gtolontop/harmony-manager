@@ -52,15 +52,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           avatar?: string;
         };
 
-        // Check if user exists
-        const existingUser = await db.user.findUnique({
-          where: { discordId: discordProfile.id },
+        // Check if account already exists (user already linked)
+        const existingAccount = await db.account.findUnique({
+          where: {
+            provider_providerAccountId: {
+              provider: "discord",
+              providerAccountId: discordProfile.id,
+            },
+          },
+          include: { user: true },
         });
 
-        if (existingUser) {
-          // Update existing user
+        if (existingAccount) {
+          // Update existing user's info
           await db.user.update({
-            where: { discordId: discordProfile.id },
+            where: { id: existingAccount.userId },
             data: {
               username: discordProfile.username,
               displayName: discordProfile.global_name || discordProfile.username,
@@ -71,22 +77,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           });
         } else {
-          // Determine role for new user
-          const role = SUPERADMIN_IDS.includes(discordProfile.id) ? "superadmin" : "client";
-
-          // Create new user
-          await db.user.create({
-            data: {
-              discordId: discordProfile.id,
-              username: discordProfile.username,
-              displayName: discordProfile.global_name || discordProfile.username,
-              email: discordProfile.email,
-              image: discordProfile.avatar
-                ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
-                : null,
-              role,
-            },
+          // Check if user exists by discordId (created before linking)
+          const existingUser = await db.user.findUnique({
+            where: { discordId: discordProfile.id },
           });
+
+          if (existingUser) {
+            // Update existing user
+            await db.user.update({
+              where: { id: existingUser.id },
+              data: {
+                username: discordProfile.username,
+                displayName: discordProfile.global_name || discordProfile.username,
+                email: discordProfile.email,
+                image: discordProfile.avatar
+                  ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
+                  : null,
+              },
+            });
+            // Link user id so adapter uses this user
+            user.id = existingUser.id;
+          } else {
+            // New user - set role and discordId, adapter will create the user
+            const role = SUPERADMIN_IDS.includes(discordProfile.id) ? "superadmin" : "client";
+            user.discordId = discordProfile.id;
+            user.username = discordProfile.username;
+            user.displayName = discordProfile.global_name || discordProfile.username;
+            user.role = role;
+          }
         }
       }
       return true;
