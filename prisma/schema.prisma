@@ -1,0 +1,327 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  client
+  recrue
+  mecano_novice
+  experimente
+  chef_equipe
+  patron
+  superadmin
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model User {
+  id                 String                     @id @default(cuid())
+  discordId          String                     @unique @map("discord_id")
+  username           String
+  displayName        String?                    @map("display_name")
+  email              String?                    @unique
+  emailVerified      DateTime?                  @map("email_verified")
+  image              String?
+  role               Role                       @default(client)
+  createdAt          DateTime                   @default(now()) @map("created_at")
+  updatedAt          DateTime                   @updatedAt @map("updated_at")
+  accounts           Account[]
+  sessions           Session[]
+  invoices           Invoice[]                  @relation("MecanoInvoices")
+  fideliteStats      FideliteStats?
+  fideliteOperations FideliteOperation[]        @relation("ClientOperations")
+  mecanoOperations   FideliteOperation[]        @relation("MecanoOperations")
+  candidatures       Candidature[]
+  candidatureNotes   CandidatureNote[]
+  candidatureHistory CandidatureStatusHistory[]
+  vehiclesOutOfList  VehicleOutOfList[]
+
+  @@map("users")
+}
+
+model Vehicle {
+  id        String    @id @default(cuid())
+  name      String
+  code      String?
+  category  String?
+  imagePath String?   @map("image_path")
+  isActive  Boolean   @default(true) @map("is_active")
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at")
+  invoices  Invoice[]
+
+  @@map("vehicles")
+}
+
+model VehicleOutOfList {
+  id        String   @id @default(cuid())
+  name      String
+  mecanoId  String   @map("mecano_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  mecano    User     @relation(fields: [mecanoId], references: [id])
+
+  @@map("vehicles_out_of_list")
+}
+
+model ServiceCustomisation {
+  id              String           @id @default(cuid())
+  name            String
+  category        String?
+  price           Int
+  hasQuantity     Boolean          @default(false) @map("has_quantity")
+  isActive        Boolean          @default(true) @map("is_active")
+  sortOrder       Int              @default(0) @map("sort_order")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  invoiceServices InvoiceService[]
+
+  @@map("services_customisation")
+}
+
+model Collaboration {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  advantageType   String?   @map("advantage_type")
+  discountPercent Int       @default(0) @map("discount_percent")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  invoices        Invoice[]
+
+  @@map("collaborations")
+}
+
+model Invoice {
+  id                String           @id @default(cuid())
+  invoiceNumber     String           @unique @map("invoice_number")
+  clientFirstname   String           @map("client_firstname")
+  clientName        String           @map("client_name")
+  clientCniPath     String?          @map("client_cni_path")
+  vehicleId         String?          @map("vehicle_id")
+  vehicleName       String           @map("vehicle_name")
+  vehiclePlatePath  String?          @map("vehicle_plate_path")
+  isOutOfList       Boolean          @default(false) @map("is_out_of_list")
+  baseAmount        Int              @map("base_amount")
+  discountPercent   Int              @default(0) @map("discount_percent")
+  discountAmount    Int              @default(0) @map("discount_amount")
+  finalAmount       Int              @map("final_amount")
+  collaborationId   String?          @map("collaboration_id")
+  collaborationName String?          @map("collaboration_name")
+  mecanoId          String           @map("mecano_id")
+  isWeeklyArchived  Boolean          @default(false) @map("is_weekly_archived")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  vehicle           Vehicle?         @relation(fields: [vehicleId], references: [id])
+  collaboration     Collaboration?   @relation(fields: [collaborationId], references: [id])
+  mecano            User             @relation("MecanoInvoices", fields: [mecanoId], references: [id])
+  services          InvoiceService[]
+
+  @@map("invoices")
+}
+
+model InvoiceService {
+  id          String               @id @default(cuid())
+  invoiceId   String               @map("invoice_id")
+  serviceId   String               @map("service_id")
+  serviceName String               @map("service_name")
+  quantity    Int                  @default(1)
+  unitPrice   Int                  @map("unit_price")
+  totalPrice  Int                  @map("total_price")
+  invoice     Invoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  service     ServiceCustomisation @relation(fields: [serviceId], references: [id])
+
+  @@map("invoice_services")
+}
+
+model FideliteStats {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique @map("user_id")
+  totalSpent             Int      @default(0) @map("total_spent")
+  points                 Int      @default(0)
+  currentDiscountPercent Int      @default(0) @map("current_discount_percent")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("fidelite_stats")
+}
+
+model FideliteOperation {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  mecanoId  String   @map("mecano_id")
+  amount    Int
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation("ClientOperations", fields: [userId], references: [id])
+  mecano    User     @relation("MecanoOperations", fields: [mecanoId], references: [id])
+
+  @@map("fidelite_operations")
+}
+
+enum CandidatureStatus {
+  en_attente
+  a_tester
+  accepte
+  refuse
+}
+
+model Candidature {
+  id               String                     @id @default(cuid())
+  userId           String                     @map("user_id")
+  pseudoRp         String                     @map("pseudo_rp")
+  age              Int
+  disponibilites   String                     @db.Text
+  experienceRp     String                     @map("experience_rp") @db.Text
+  experienceMecano String                     @map("experience_mecano") @db.Text
+  motivations      String                     @db.Text
+  visionRp         String                     @map("vision_rp") @db.Text
+  gestionConflits  String                     @map("gestion_conflits") @db.Text
+  status           CandidatureStatus          @default(en_attente)
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+  user             User                       @relation(fields: [userId], references: [id])
+  answers          RecruitmentAnswer[]
+  notes            CandidatureNote[]
+  statusHistory    CandidatureStatusHistory[]
+
+  @@map("candidatures")
+}
+
+model RecruitmentQuestion {
+  id         String              @id @default(cuid())
+  label      String
+  fieldName  String              @unique @map("field_name")
+  fieldType  String              @default("textarea") @map("field_type")
+  isRequired Boolean             @default(false) @map("is_required")
+  sortOrder  Int                 @default(0) @map("sort_order")
+  options    String?             @db.Text
+  isActive   Boolean             @default(true) @map("is_active")
+  answers    RecruitmentAnswer[]
+
+  @@map("recruitment_questions")
+}
+
+model RecruitmentAnswer {
+  id            String              @id @default(cuid())
+  candidatureId String              @map("candidature_id")
+  questionId    String              @map("question_id")
+  answerText    String              @map("answer_text") @db.Text
+  candidature   Candidature         @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+  question      RecruitmentQuestion @relation(fields: [questionId], references: [id])
+
+  @@map("recruitment_answers")
+}
+
+model CandidatureNote {
+  id            String      @id @default(cuid())
+  candidatureId String      @map("candidature_id")
+  authorId      String      @map("author_id")
+  content       String      @db.Text
+  createdAt     DateTime    @default(now()) @map("created_at")
+  candidature   Candidature @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+  author        User        @relation(fields: [authorId], references: [id])
+
+  @@map("candidature_notes")
+}
+
+model CandidatureStatusHistory {
+  id            String            @id @default(cuid())
+  candidatureId String            @map("candidature_id")
+  oldStatus     CandidatureStatus @map("old_status")
+  newStatus     CandidatureStatus @map("new_status")
+  authorId      String            @map("author_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  candidature   Candidature       @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+  author        User              @relation(fields: [authorId], references: [id])
+
+  @@map("candidature_status_history")
+}
+
+model PayRule {
+  id         String @id @default(cuid())
+  role       Role   @unique
+  percentage Int
+
+  @@map("pay_rules")
+}
+
+model TaxConfig {
+  id             String  @id @default(cuid())
+  tvaRate        Int     @default(10) @map("tva_rate")
+  profitTaxRate  Int     @default(5) @map("profit_tax_rate")
+  periodicity    String  @default("week")
+  govAccountNote String? @map("gov_account_note") @db.Text
+
+  @@map("tax_config")
+}
+
+enum TaxPeriodStatus {
+  A_PAYER
+  PAYE
+}
+
+model TaxPeriod {
+  id              String          @id @default(cuid())
+  periodKey       String          @unique @map("period_key")
+  periodType      String          @map("period_type")
+  caTotal         Int             @default(0) @map("ca_total")
+  totalPay        Int             @default(0) @map("total_pay")
+  taxableBase     Int             @default(0) @map("taxable_base")
+  tvaAmount       Int             @default(0) @map("tva_amount")
+  profitTaxAmount Int             @default(0) @map("profit_tax_amount")
+  totalTax        Int             @default(0) @map("total_tax")
+  status          TaxPeriodStatus @default(A_PAYER)
+  paidAmount      Int?            @map("paid_amount")
+  paidDate        String?         @map("paid_date")
+  paidNote        String?         @map("paid_note") @db.Text
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@map("tax_periods")
+}
+
+model AdminSetting {
+  key   String @id
+  value String @db.Text
+
+  @@map("admin_settings")
+}
