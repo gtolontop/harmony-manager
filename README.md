@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Harmony Manager
 
-## Getting Started
+Intranet de gestion pour garage automobile FiveM (Harmony Motors / Hayes Motors).
 
-First, run the development server:
+## Fonctionnalités
 
+- **Authentification Discord** - Connexion sécurisée via Discord OAuth
+- **Système de rôles** - 7 niveaux (Client, Recrue, Mécano Novice, Expérimenté, Chef d'équipe, Patron, Superadmin)
+- **Recrutement** - Formulaire de candidature et gestion des candidatures
+- **Fidélité** - Programme de points fidélité avec bonus
+- **Facturation** - Création de factures avec services et collaborations
+- **Statistiques** - Suivi du CA personnel et d'équipe avec objectifs hebdomadaires
+- **Gestion Manager** - Recrutement, collaborations, paie & impôts
+- **Administration** - Utilisateurs, services, véhicules, configuration
+
+## Stack Technique
+
+- **Framework** : Next.js 16 (App Router)
+- **Langage** : TypeScript
+- **Base de données** : PostgreSQL + Prisma ORM
+- **Authentification** : Auth.js (NextAuth v5) + Discord
+- **UI** : TailwindCSS + shadcn/ui
+- **Validation** : Zod
+- **Notifications** : Sonner
+
+## Installation
+
+### Prérequis
+
+- Node.js 18+
+- PostgreSQL
+- Compte Discord Developer
+
+### Configuration
+
+1. Cloner le repo :
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/gtolontop/harmony-manager.git
+cd harmony-manager
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Installer les dépendances :
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Copier le fichier d'environnement :
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Configurer les variables d'environnement dans `.env` :
+   - `DATABASE_URL` : URL de connexion PostgreSQL
+   - `AUTH_SECRET` : Clé secrète (générer avec `openssl rand -base64 32`)
+   - `AUTH_DISCORD_ID` : Client ID Discord
+   - `AUTH_DISCORD_SECRET` : Client Secret Discord
 
-## Learn More
+5. Créer l'application Discord :
+   - Aller sur https://discord.com/developers/applications
+   - Créer une nouvelle application
+   - Aller dans OAuth2 > General
+   - Copier Client ID et Client Secret
+   - Ajouter l'URL de redirection : `http://localhost:3000/api/auth/callback/discord`
 
-To learn more about Next.js, take a look at the following resources:
+6. Initialiser la base de données :
+```bash
+npm run db:push
+npm run db:seed
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+7. Lancer le serveur de développement :
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+L'application est accessible sur http://localhost:3000
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `npm run dev` : Serveur de développement
+- `npm run build` : Build de production
+- `npm run start` : Lancer la production
+- `npm run db:push` : Synchroniser le schéma Prisma
+- `npm run db:seed` : Peupler la base avec des données initiales
+- `npm run db:studio` : Interface Prisma Studio
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Structure du projet
+
+```
+src/
+├── app/                    # Pages Next.js (App Router)
+│   ├── (auth)/            # Pages d'authentification
+│   ├── (dashboard)/       # Pages protégées
+│   │   ├── admin/         # Administration
+│   │   ├── compta/        # Comptabilité
+│   │   ├── fidelite/      # Fidélité
+│   │   ├── manager/       # Gestion
+│   │   ├── recrutement/   # Candidatures
+│   │   └── stats/         # Statistiques
+│   └── api/               # Routes API
+├── components/            # Composants React
+│   ├── layout/           # Layout (navbar, etc.)
+│   └── ui/               # Composants UI (shadcn)
+├── lib/                  # Utilitaires
+│   ├── actions/          # Server Actions
+│   ├── auth.ts           # Configuration Auth.js
+│   ├── db.ts             # Client Prisma
+│   └── rbac.ts           # Contrôle d'accès
+└── types/                # Types TypeScript
+```
+
+## Rôles et permissions
+
+| Rôle | Niveau | % Paie | Accès |
+|------|--------|--------|-------|
+| Client | 0 | - | Fidélité |
+| Recrue | 1 | 20% | + Facturation, Stats |
+| Mécano Novice | 2 | 25% | Idem |
+| Expérimenté | 3 | 30% | + Historique |
+| Chef d'équipe | 4 | 35% | + Manager |
+| Patron | 5 | 40% | + Admin |
+| Superadmin | 6 | 50% | Tous |
+
+## Licence
+
+Projet privé - Tous droits réservés.
