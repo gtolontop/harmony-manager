@@ -15,7 +15,7 @@ export default async function AdminConfigPage() {
   await requirePatron();
   const questions = await getQuestions();
 
-  const activeQuestions = questions.filter((q) => q.isActive);
+  const activeQuestions = questions.filter((q: { isActive: boolean }) => q.isActive);
 
   return (
     <div className="space-y-8">
@@ -54,7 +54,7 @@ export default async function AdminConfigPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                      {question.order}
+                      {question.sortOrder}
                     </div>
                     <div>
                       <div className="font-medium">{question.label}</div>

@@ -19,17 +19,12 @@ export const metadata = {
   title: "Gestion des véhicules",
 };
 
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("fr-FR").format(price) + " €";
-}
-
 export default async function AdminVehiclesPage() {
   await requirePatron();
   const vehicles = await getVehicles();
 
-  // Group by brand
-  const brands = [...new Set(vehicles.map((v) => v.brand))].sort();
-  const categories = [...new Set(vehicles.map((v) => v.category))].sort();
+  // Group by category
+  const categories = [...new Set(vehicles.map((v) => v.category).filter(Boolean))].sort() as string[];
 
   return (
     <div className="space-y-8">
@@ -46,7 +41,7 @@ export default async function AdminVehiclesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -55,16 +50,6 @@ export default async function AdminVehiclesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{vehicles.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Marques
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{brands.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -85,7 +70,7 @@ export default async function AdminVehiclesPage() {
           <CardTitle>Nouveau véhicule</CardTitle>
         </CardHeader>
         <CardContent>
-          <VehicleForm existingBrands={brands} existingCategories={categories} />
+          <VehicleForm existingCategories={categories} />
         </CardContent>
       </Card>
 
@@ -99,32 +84,29 @@ export default async function AdminVehiclesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Marque</TableHead>
-                  <TableHead>Modèle</TableHead>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Code</TableHead>
                   <TableHead>Catégorie</TableHead>
-                  <TableHead className="text-right">Prix de base</TableHead>
-                  <TableHead className="text-right">Customs</TableHead>
+                  <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {vehicles.map((vehicle) => (
                   <TableRow key={vehicle.id}>
-                    <TableCell>
-                      <Badge variant="outline">{vehicle.brand}</Badge>
-                    </TableCell>
                     <TableCell className="font-medium">{vehicle.name}</TableCell>
-                    <TableCell>{vehicle.category}</TableCell>
-                    <TableCell className="text-right">
-                      {formatPrice(vehicle.basePrice)}
+                    <TableCell>
+                      {vehicle.code && <Badge variant="outline">{vehicle.code}</Badge>}
                     </TableCell>
-                    <TableCell className="text-right">
-                      {vehicle._count.customisations}
+                    <TableCell>{vehicle.category || "-"}</TableCell>
+                    <TableCell>
+                      <Badge variant={vehicle.isActive ? "default" : "secondary"}>
+                        {vehicle.isActive ? "Actif" : "Inactif"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <VehicleActions
                         vehicle={vehicle}
-                        existingBrands={brands}
                         existingCategories={categories}
                       />
                     </TableCell>
@@ -132,7 +114,7 @@ export default async function AdminVehiclesPage() {
                 ))}
                 {vehicles.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       Aucun véhicule pour le moment
                     </TableCell>
                   </TableRow>

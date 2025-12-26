@@ -40,8 +40,8 @@ interface NavbarProps {
   user: {
     id: string;
     username: string;
-    displayName: string | null;
-    image: string | null;
+    displayName?: string | null;
+    image?: string | null;
     role: Role;
   };
 }

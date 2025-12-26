@@ -25,29 +25,24 @@ interface VehicleActionsProps {
   vehicle: {
     id: string;
     name: string;
-    brand: string;
-    category: string;
-    basePrice: number;
+    code: string | null;
+    category: string | null;
   };
-  existingBrands: string[];
   existingCategories: string[];
 }
 
 export function VehicleActions({
   vehicle,
-  existingBrands,
   existingCategories,
 }: VehicleActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editName, setEditName] = useState(vehicle.name);
-  const [editBrand, setEditBrand] = useState(vehicle.brand);
-  const [editCategory, setEditCategory] = useState(vehicle.category);
-  const [editPrice, setEditPrice] = useState(vehicle.basePrice.toString());
+  const [editCode, setEditCode] = useState(vehicle.code || "");
+  const [editCategory, setEditCategory] = useState(vehicle.category || "");
 
   const handleEdit = () => {
-    const price = parseFloat(editPrice);
-    if (!editName.trim() || !editBrand.trim() || !editCategory.trim() || isNaN(price)) {
+    if (!editName.trim()) {
       toast.error("Données invalides");
       return;
     }
@@ -55,9 +50,8 @@ export function VehicleActions({
     startTransition(async () => {
       const result = await updateVehicle(vehicle.id, {
         name: editName.trim(),
-        brand: editBrand.trim(),
-        category: editCategory.trim(),
-        basePrice: price,
+        code: editCode.trim() || undefined,
+        category: editCategory.trim() || undefined,
       });
 
       if (result.success) {
@@ -109,26 +103,20 @@ export function VehicleActions({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-brand">Marque</Label>
-              <Input
-                id="edit-brand"
-                value={editBrand}
-                onChange={(e) => setEditBrand(e.target.value)}
-                disabled={isPending}
-                list="edit-brands"
-              />
-              <datalist id="edit-brands">
-                {existingBrands.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Modèle</Label>
+              <Label htmlFor="edit-name">Nom</Label>
               <Input
                 id="edit-name"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-code">Code</Label>
+              <Input
+                id="edit-code"
+                value={editCode}
+                onChange={(e) => setEditCode(e.target.value)}
                 disabled={isPending}
               />
             </div>
@@ -146,18 +134,6 @@ export function VehicleActions({
                   <option key={c} value={c} />
                 ))}
               </datalist>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-price">Prix de base (€)</Label>
-              <Input
-                id="edit-price"
-                type="number"
-                min="0"
-                step="10000"
-                value={editPrice}
-                onChange={(e) => setEditPrice(e.target.value)}
-                disabled={isPending}
-              />
             </div>
           </div>
           <DialogFooter>

@@ -15,13 +15,13 @@ import { createService } from "@/lib/actions/admin";
 import { toast } from "sonner";
 
 interface ServiceFormProps {
-  categories: { id: string; name: string }[];
+  categories: string[];
 }
 
 export function ServiceForm({ categories }: ServiceFormProps) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("none");
+  const [category, setCategory] = useState<string>("none");
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,14 +42,14 @@ export function ServiceForm({ categories }: ServiceFormProps) {
       const result = await createService({
         name: name.trim(),
         price: priceNum,
-        categoryId: categoryId === "none" ? undefined : categoryId,
+        category: category === "none" ? undefined : category,
       });
 
       if (result.success) {
         toast.success("Service créé");
         setName("");
         setPrice("");
-        setCategoryId("none");
+        setCategory("none");
       } else {
         toast.error(result.error || "Erreur");
       }
@@ -85,15 +85,15 @@ export function ServiceForm({ categories }: ServiceFormProps) {
 
       <div className="w-[180px] space-y-2">
         <Label>Catégorie</Label>
-        <Select value={categoryId} onValueChange={setCategoryId} disabled={isPending}>
+        <Select value={category} onValueChange={setCategory} disabled={isPending}>
           <SelectTrigger>
             <SelectValue placeholder="Aucune" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Aucune</SelectItem>
             {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.name}
+              <SelectItem key={cat} value={cat}>
+                {cat}
               </SelectItem>
             ))}
           </SelectContent>

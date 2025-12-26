@@ -4,20 +4,12 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { createCollaboration } from "@/lib/actions/collaboration";
 import { toast } from "sonner";
 
 export function CollaborationForm() {
   const [name, setName] = useState("");
-  const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
-  const [discountValue, setDiscountValue] = useState("");
+  const [discountPercent, setDiscountPercent] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,29 +20,23 @@ export function CollaborationForm() {
       return;
     }
 
-    const value = parseFloat(discountValue);
-    if (isNaN(value) || value < 0) {
-      toast.error("Valeur de réduction invalide");
-      return;
-    }
-
-    if (discountType === "percentage" && value > 100) {
-      toast.error("Le pourcentage ne peut pas dépasser 100%");
+    const percent = parseFloat(discountPercent);
+    if (isNaN(percent) || percent < 0 || percent > 100) {
+      toast.error("Pourcentage invalide (0-100)");
       return;
     }
 
     startTransition(async () => {
       const result = await createCollaboration({
         name: name.trim(),
-        discountType,
-        discountValue: value,
+        discountPercent: percent,
         isActive: true,
       });
 
       if (result.success) {
         toast.success("Collaboration créée");
         setName("");
-        setDiscountValue("");
+        setDiscountPercent("");
       } else {
         toast.error(result.error || "Erreur lors de la création");
       }
@@ -71,35 +57,16 @@ export function CollaborationForm() {
       </div>
 
       <div className="w-[150px] space-y-2">
-        <Label>Type de réduction</Label>
-        <Select
-          value={discountType}
-          onValueChange={(v) => setDiscountType(v as "percentage" | "fixed")}
-          disabled={isPending}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="percentage">Pourcentage</SelectItem>
-            <SelectItem value="fixed">Montant fixe</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="w-[150px] space-y-2">
-        <Label htmlFor="value">
-          {discountType === "percentage" ? "Pourcentage (%)" : "Montant (€)"}
-        </Label>
+        <Label htmlFor="discount">Réduction (%)</Label>
         <Input
-          id="value"
+          id="discount"
           type="number"
           min="0"
-          max={discountType === "percentage" ? "100" : undefined}
-          step={discountType === "percentage" ? "1" : "1000"}
-          placeholder={discountType === "percentage" ? "20" : "50000"}
-          value={discountValue}
-          onChange={(e) => setDiscountValue(e.target.value)}
+          max="100"
+          step="1"
+          placeholder="20"
+          value={discountPercent}
+          onChange={(e) => setDiscountPercent(e.target.value)}
           disabled={isPending}
         />
       </div>

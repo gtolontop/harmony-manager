@@ -17,7 +17,7 @@ interface QuestionActionsProps {
     id: string;
     label: string;
     isActive: boolean;
-    order: number;
+    sortOrder: number;
   };
 }
 

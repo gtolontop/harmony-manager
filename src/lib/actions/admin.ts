@@ -57,31 +57,30 @@ export async function updateUserRole(userId: string, newRole: Role) {
   }
 }
 
-// Services
+// Services (ServiceCustomisation)
 const serviceSchema = z.object({
   name: z.string().min(2),
   price: z.number().min(0),
-  categoryId: z.string().optional(),
+  category: z.string().optional(),
+  hasQuantity: z.boolean().optional(),
 });
 
 export async function getServices() {
-  return db.service.findMany({
-    orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
-    include: {
-      category: true,
-    },
+  return db.serviceCustomisation.findMany({
+    orderBy: [{ category: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
   });
 }
 
 export async function getServiceCategories() {
-  return db.serviceCategory.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      _count: {
-        select: { services: true },
-      },
-    },
+  // Get unique categories from services
+  const services = await db.serviceCustomisation.findMany({
+    select: { category: true },
+    distinct: ["category"],
+    where: { category: { not: null } },
+    orderBy: { category: "asc" },
   });
+
+  return services.map((s) => s.category).filter(Boolean) as string[];
 }
 
 export async function createService(data: z.infer<typeof serviceSchema>) {
@@ -91,11 +90,12 @@ export async function createService(data: z.infer<typeof serviceSchema>) {
   }
 
   try {
-    await db.service.create({
+    await db.serviceCustomisation.create({
       data: {
         name: data.name,
         price: data.price,
-        categoryId: data.categoryId || null,
+        category: data.category || null,
+        hasQuantity: data.hasQuantity || false,
       },
     });
 
@@ -114,7 +114,7 @@ export async function updateService(id: string, data: Partial<z.infer<typeof ser
   }
 
   try {
-    await db.service.update({
+    await db.serviceCustomisation.update({
       where: { id },
       data,
     });
@@ -134,7 +134,7 @@ export async function deleteService(id: string) {
   }
 
   try {
-    await db.service.delete({ where: { id } });
+    await db.serviceCustomisation.delete({ where: { id } });
     revalidatePath("/admin/services");
     return { success: true };
   } catch (error) {
@@ -143,63 +143,16 @@ export async function deleteService(id: string) {
   }
 }
 
-export async function createCategory(name: string) {
-  const session = await auth();
-  if (!session?.user?.role || !isPatron(session.user.role)) {
-    return { success: false, error: "Non autorisé" };
-  }
-
-  try {
-    await db.serviceCategory.create({
-      data: { name },
-    });
-
-    revalidatePath("/admin/services");
-    return { success: true };
-  } catch (error) {
-    console.error("Error creating category:", error);
-    return { success: false, error: "Erreur lors de la création" };
-  }
-}
-
-export async function deleteCategory(id: string) {
-  const session = await auth();
-  if (!session?.user?.role || !isPatron(session.user.role)) {
-    return { success: false, error: "Non autorisé" };
-  }
-
-  try {
-    // Move services to uncategorized first
-    await db.service.updateMany({
-      where: { categoryId: id },
-      data: { categoryId: null },
-    });
-
-    await db.serviceCategory.delete({ where: { id } });
-    revalidatePath("/admin/services");
-    return { success: true };
-  } catch (error) {
-    console.error("Error deleting category:", error);
-    return { success: false, error: "Erreur lors de la suppression" };
-  }
-}
-
 // Vehicles
 const vehicleSchema = z.object({
   name: z.string().min(2),
-  brand: z.string().min(1),
-  category: z.string().min(1),
-  basePrice: z.number().min(0),
+  code: z.string().optional(),
+  category: z.string().optional(),
 });
 
 export async function getVehicles() {
   return db.vehicle.findMany({
-    orderBy: [{ brand: "asc" }, { name: "asc" }],
-    include: {
-      _count: {
-        select: { customisations: true },
-      },
-    },
+    orderBy: [{ category: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
   });
 }
 
@@ -210,7 +163,13 @@ export async function createVehicle(data: z.infer<typeof vehicleSchema>) {
   }
 
   try {
-    await db.vehicle.create({ data });
+    await db.vehicle.create({
+      data: {
+        name: data.name,
+        code: data.code || null,
+        category: data.category || null,
+      },
+    });
     revalidatePath("/admin/vehicles");
     return { success: true };
   } catch (error) {
@@ -255,10 +214,10 @@ export async function deleteVehicle(id: string) {
   }
 }
 
-// Questions
+// Questions (RecruitmentQuestion)
 export async function getQuestions() {
-  return db.candidatureQuestion.findMany({
-    orderBy: { order: "asc" },
+  return db.recruitmentQuestion.findMany({
+    orderBy: { sortOrder: "asc" },
   });
 }
 
@@ -269,8 +228,11 @@ export async function createQuestion(label: string, order: number) {
   }
 
   try {
-    await db.candidatureQuestion.create({
-      data: { label, order, isActive: true },
+    // Generate a unique fieldName from the label
+    const fieldName = `question_${Date.now()}`;
+
+    await db.recruitmentQuestion.create({
+      data: { label, fieldName, sortOrder: order, isActive: true },
     });
 
     revalidatePath("/admin/config");
@@ -288,9 +250,13 @@ export async function updateQuestion(id: string, data: { label?: string; order?:
   }
 
   try {
-    await db.candidatureQuestion.update({
+    await db.recruitmentQuestion.update({
       where: { id },
-      data,
+      data: {
+        label: data.label,
+        sortOrder: data.order,
+        isActive: data.isActive,
+      },
     });
 
     revalidatePath("/admin/config");
@@ -308,7 +274,7 @@ export async function deleteQuestion(id: string) {
   }
 
   try {
-    await db.candidatureQuestion.delete({ where: { id } });
+    await db.recruitmentQuestion.delete({ where: { id } });
     revalidatePath("/admin/config");
     return { success: true };
   } catch (error) {

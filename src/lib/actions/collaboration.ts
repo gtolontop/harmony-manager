@@ -8,8 +8,8 @@ import { z } from "zod";
 
 const collaborationSchema = z.object({
   name: z.string().min(2, "Nom requis"),
-  discountType: z.enum(["percentage", "fixed"]),
-  discountValue: z.number().min(0),
+  advantageType: z.string().optional(),
+  discountPercent: z.number().min(0).max(100),
   isActive: z.boolean().default(true),
 });
 
@@ -36,8 +36,8 @@ export async function getActiveCollaborations() {
     select: {
       id: true,
       name: true,
-      discountType: true,
-      discountValue: true,
+      advantageType: true,
+      discountPercent: true,
     },
   });
 }
@@ -50,7 +50,7 @@ export async function createCollaboration(data: z.infer<typeof collaborationSche
 
   const validated = collaborationSchema.safeParse(data);
   if (!validated.success) {
-    return { success: false, error: validated.error.errors[0]?.message };
+    return { success: false, error: validated.error.issues[0]?.message };
   }
 
   try {

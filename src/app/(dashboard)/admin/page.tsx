@@ -11,7 +11,7 @@ export const metadata = {
 async function getAdminStats() {
   const [userCount, serviceCount, vehicleCount, invoiceCount] = await Promise.all([
     db.user.count(),
-    db.service.count(),
+    db.serviceCustomisation.count(),
     db.vehicle.count(),
     db.invoice.count(),
   ]);

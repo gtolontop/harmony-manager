@@ -160,3 +160,8 @@ export const PERMISSIONS = {
   manageTheme: (role: Role) => isSuperAdmin(role),
   resetData: (role: Role) => isSuperAdmin(role),
 } as const;
+
+// Aliases for backwards compatibility
+export const PAY_PERCENTAGES = DEFAULT_PAY_PERCENTAGES;
+export const ROLE_HIERARCHY = ROLE_LEVELS;
+export const ROLE_LABELS = ROLE_NAMES;
