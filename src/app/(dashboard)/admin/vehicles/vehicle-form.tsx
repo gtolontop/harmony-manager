@@ -8,45 +8,35 @@ import { createVehicle } from "@/lib/actions/admin";
 import { toast } from "sonner";
 
 interface VehicleFormProps {
-  existingBrands: string[];
   existingCategories: string[];
 }
 
-export function VehicleForm({ existingBrands, existingCategories }: VehicleFormProps) {
+export function VehicleForm({ existingCategories }: VehicleFormProps) {
   const [name, setName] = useState("");
-  const [brand, setBrand] = useState("");
+  const [code, setCode] = useState("");
   const [category, setCategory] = useState("");
-  const [basePrice, setBasePrice] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim() || !brand.trim() || !category.trim()) {
-      toast.error("Veuillez remplir tous les champs");
-      return;
-    }
-
-    const price = parseFloat(basePrice);
-    if (isNaN(price) || price < 0) {
-      toast.error("Prix invalide");
+    if (!name.trim()) {
+      toast.error("Veuillez entrer un nom");
       return;
     }
 
     startTransition(async () => {
       const result = await createVehicle({
         name: name.trim(),
-        brand: brand.trim(),
-        category: category.trim(),
-        basePrice: price,
+        code: code.trim() || undefined,
+        category: category.trim() || undefined,
       });
 
       if (result.success) {
         toast.success("Véhicule créé");
         setName("");
-        setBrand("");
+        setCode("");
         setCategory("");
-        setBasePrice("");
       } else {
         toast.error(result.error || "Erreur");
       }
@@ -55,31 +45,25 @@ export function VehicleForm({ existingBrands, existingCategories }: VehicleFormP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="brand">Marque</Label>
+          <Label htmlFor="name">Nom du véhicule</Label>
           <Input
-            id="brand"
-            placeholder="Ex: BMW, Audi..."
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
+            id="name"
+            placeholder="Ex: BMW M4, Audi RS6..."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             disabled={isPending}
-            list="brands"
           />
-          <datalist id="brands">
-            {existingBrands.map((b) => (
-              <option key={b} value={b} />
-            ))}
-          </datalist>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="name">Modèle</Label>
+          <Label htmlFor="code">Code (optionnel)</Label>
           <Input
-            id="name"
-            placeholder="Ex: M4, RS6..."
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            id="code"
+            placeholder="Ex: m4, rs6..."
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
             disabled={isPending}
           />
         </div>
@@ -99,20 +83,6 @@ export function VehicleForm({ existingBrands, existingCategories }: VehicleFormP
               <option key={c} value={c} />
             ))}
           </datalist>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="price">Prix de base (€)</Label>
-          <Input
-            id="price"
-            type="number"
-            min="0"
-            step="10000"
-            placeholder="500000"
-            value={basePrice}
-            onChange={(e) => setBasePrice(e.target.value)}
-            disabled={isPending}
-          />
         </div>
       </div>
 

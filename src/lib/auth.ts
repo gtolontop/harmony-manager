@@ -13,9 +13,9 @@ declare module "next-auth" {
       id: string;
       discordId: string;
       username: string;
-      displayName: string | null;
-      email: string | null;
-      image: string | null;
+      displayName?: string | null;
+      email?: string | null;
+      image?: string | null;
       role: Role;
     };
   }
@@ -23,13 +23,13 @@ declare module "next-auth" {
   interface User {
     discordId: string;
     username: string;
-    displayName: string | null;
+    displayName?: string | null;
     role: Role;
   }
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(db),
+  adapter: PrismaAdapter(db) as never,
   providers: [
     Discord({
       clientId: process.env.DISCORD_CLIENT_ID!,
@@ -98,7 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       });
 
       if (dbUser) {
-        session.user = {
+        Object.assign(session.user, {
           id: dbUser.id,
           discordId: dbUser.discordId,
           username: dbUser.username,
@@ -106,7 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: dbUser.email,
           image: dbUser.image,
           role: dbUser.role,
-        };
+        });
       }
 
       return session;

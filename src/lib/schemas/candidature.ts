@@ -36,7 +36,7 @@ export const candidatureSchema = z.object({
   acceptRules: z
     .boolean()
     .refine((val) => val === true, "Vous devez accepter le règlement"),
-  dynamicAnswers: z.record(z.string()).optional(),
+  dynamicAnswers: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type CandidatureFormData = z.infer<typeof candidatureSchema>;

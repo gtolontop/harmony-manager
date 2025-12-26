@@ -33,10 +33,20 @@ export default async function AdminServicesPage() {
   ]);
 
   // Group services by category
-  const uncategorized = services.filter((s) => !s.categoryId);
-  const categorizedServices = categories.map((cat) => ({
-    ...cat,
-    services: services.filter((s) => s.categoryId === cat.id),
+  const uncategorized = services.filter((s) => !s.category);
+
+  // Count services per category
+  const serviceCounts: Record<string, number> = {};
+  services.forEach((s) => {
+    if (s.category) {
+      serviceCounts[s.category] = (serviceCounts[s.category] || 0) + 1;
+    }
+  });
+
+  // Group services by category for display
+  const servicesByCategory = categories.map((cat) => ({
+    name: cat,
+    services: services.filter((s) => s.category === cat),
   }));
 
   return (
@@ -88,7 +98,7 @@ export default async function AdminServicesPage() {
       </div>
 
       {/* Categories management */}
-      <CategorySection categories={categories} />
+      <CategorySection categories={categories} serviceCounts={serviceCounts} />
 
       {/* Add service form */}
       <Card>
@@ -101,8 +111,8 @@ export default async function AdminServicesPage() {
       </Card>
 
       {/* Services by category */}
-      {categorizedServices.map((cat) => (
-        <Card key={cat.id}>
+      {servicesByCategory.map((cat) => (
+        <Card key={cat.name}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {cat.name}

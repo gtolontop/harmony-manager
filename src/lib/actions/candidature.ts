@@ -37,7 +37,7 @@ export async function submitCandidature(formData: FormData) {
   });
 
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message };
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
   try {
@@ -67,7 +67,7 @@ export async function submitCandidature(formData: FormData) {
         .map(([fieldName, answerText]) => ({
           candidatureId: candidature.id,
           questionId: questions.find((q) => q.fieldName === fieldName)!.id,
-          answerText,
+          answerText: String(answerText),
         }));
 
       if (answers.length > 0) {
@@ -98,7 +98,7 @@ export async function addCandidatureNote(candidatureId: string, formData: FormDa
   });
 
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message };
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
   try {

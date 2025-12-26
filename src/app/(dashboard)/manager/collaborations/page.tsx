@@ -106,9 +106,7 @@ export default async function CollaborationsPage() {
                   <TableRow key={collab.id}>
                     <TableCell className="font-medium">{collab.name}</TableCell>
                     <TableCell>
-                      {collab.discountType === "percentage"
-                        ? `${collab.discountValue}%`
-                        : `${new Intl.NumberFormat("fr-FR").format(collab.discountValue)} €`}
+                      {collab.discountPercent}%
                     </TableCell>
                     <TableCell>{collab._count.invoices}</TableCell>
                     <TableCell>

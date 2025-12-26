@@ -5,119 +5,108 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Service Categories
-  const categories = await Promise.all([
-    prisma.serviceCategory.create({ data: { name: "Entretien" } }),
-    prisma.serviceCategory.create({ data: { name: "Réparation" } }),
-    prisma.serviceCategory.create({ data: { name: "Performance" } }),
-    prisma.serviceCategory.create({ data: { name: "Esthétique" } }),
-    prisma.serviceCategory.create({ data: { name: "Divers" } }),
-  ]);
-
-  console.log(`✅ Created ${categories.length} service categories`);
-
-  // Services
+  // Services (ServiceCustomisation)
   const services = [
     // Entretien
-    { name: "Vidange", price: 50000, categoryId: categories[0].id },
-    { name: "Vidange + Filtres", price: 100000, categoryId: categories[0].id },
-    { name: "Contrôle technique", price: 75000, categoryId: categories[0].id },
-    { name: "Révision complète", price: 200000, categoryId: categories[0].id },
-    { name: "Remplacement liquide de frein", price: 80000, categoryId: categories[0].id },
-    { name: "Purge liquide refroidissement", price: 60000, categoryId: categories[0].id },
+    { name: "Vidange", category: "Entretien", price: 50000 },
+    { name: "Vidange + Filtres", category: "Entretien", price: 100000 },
+    { name: "Contrôle technique", category: "Entretien", price: 75000 },
+    { name: "Révision complète", category: "Entretien", price: 200000 },
+    { name: "Remplacement liquide de frein", category: "Entretien", price: 80000 },
+    { name: "Purge liquide refroidissement", category: "Entretien", price: 60000 },
 
     // Réparation
-    { name: "Changement plaquettes avant", price: 150000, categoryId: categories[1].id },
-    { name: "Changement plaquettes arrière", price: 150000, categoryId: categories[1].id },
-    { name: "Changement disques + plaquettes AV", price: 350000, categoryId: categories[1].id },
-    { name: "Changement disques + plaquettes AR", price: 300000, categoryId: categories[1].id },
-    { name: "Changement amortisseurs (x4)", price: 500000, categoryId: categories[1].id },
-    { name: "Remplacement embrayage", price: 400000, categoryId: categories[1].id },
-    { name: "Remplacement radiateur", price: 250000, categoryId: categories[1].id },
-    { name: "Remplacement alternateur", price: 200000, categoryId: categories[1].id },
-    { name: "Changement courroie distribution", price: 450000, categoryId: categories[1].id },
-    { name: "Réparation boîte de vitesse", price: 800000, categoryId: categories[1].id },
+    { name: "Changement plaquettes avant", category: "Réparation", price: 150000 },
+    { name: "Changement plaquettes arrière", category: "Réparation", price: 150000 },
+    { name: "Changement disques + plaquettes AV", category: "Réparation", price: 350000 },
+    { name: "Changement disques + plaquettes AR", category: "Réparation", price: 300000 },
+    { name: "Changement amortisseurs (x4)", category: "Réparation", price: 500000 },
+    { name: "Remplacement embrayage", category: "Réparation", price: 400000 },
+    { name: "Remplacement radiateur", category: "Réparation", price: 250000 },
+    { name: "Remplacement alternateur", category: "Réparation", price: 200000 },
+    { name: "Changement courroie distribution", category: "Réparation", price: 450000 },
+    { name: "Réparation boîte de vitesse", category: "Réparation", price: 800000 },
 
     // Performance
-    { name: "Reprogrammation Stage 1", price: 500000, categoryId: categories[2].id },
-    { name: "Reprogrammation Stage 2", price: 1000000, categoryId: categories[2].id },
-    { name: "Installation turbo", price: 2000000, categoryId: categories[2].id },
-    { name: "Installation supercharger", price: 2500000, categoryId: categories[2].id },
-    { name: "Échappement sport", price: 600000, categoryId: categories[2].id },
-    { name: "Admission directe", price: 300000, categoryId: categories[2].id },
-    { name: "Suspension sport", price: 700000, categoryId: categories[2].id },
-    { name: "Kit freinage performance", price: 800000, categoryId: categories[2].id },
+    { name: "Reprogrammation Stage 1", category: "Performance", price: 500000 },
+    { name: "Reprogrammation Stage 2", category: "Performance", price: 1000000 },
+    { name: "Installation turbo", category: "Performance", price: 2000000 },
+    { name: "Installation supercharger", category: "Performance", price: 2500000 },
+    { name: "Échappement sport", category: "Performance", price: 600000 },
+    { name: "Admission directe", category: "Performance", price: 300000 },
+    { name: "Suspension sport", category: "Performance", price: 700000 },
+    { name: "Kit freinage performance", category: "Performance", price: 800000 },
 
     // Esthétique
-    { name: "Polissage carrosserie", price: 200000, categoryId: categories[3].id },
-    { name: "Covering partiel", price: 500000, categoryId: categories[3].id },
-    { name: "Covering complet", price: 1500000, categoryId: categories[3].id },
-    { name: "Pose film teinté", price: 300000, categoryId: categories[3].id },
-    { name: "Débosselage", price: 150000, categoryId: categories[3].id },
-    { name: "Peinture pare-choc", price: 250000, categoryId: categories[3].id },
-    { name: "Peinture complète", price: 2000000, categoryId: categories[3].id },
-    { name: "Nettoyage intérieur complet", price: 100000, categoryId: categories[3].id },
+    { name: "Polissage carrosserie", category: "Esthétique", price: 200000 },
+    { name: "Covering partiel", category: "Esthétique", price: 500000 },
+    { name: "Covering complet", category: "Esthétique", price: 1500000 },
+    { name: "Pose film teinté", category: "Esthétique", price: 300000 },
+    { name: "Débosselage", category: "Esthétique", price: 150000 },
+    { name: "Peinture pare-choc", category: "Esthétique", price: 250000 },
+    { name: "Peinture complète", category: "Esthétique", price: 2000000 },
+    { name: "Nettoyage intérieur complet", category: "Esthétique", price: 100000 },
 
     // Divers
-    { name: "Diagnostic électronique", price: 50000, categoryId: categories[4].id },
-    { name: "Montage pneus (x4)", price: 80000, categoryId: categories[4].id },
-    { name: "Équilibrage", price: 40000, categoryId: categories[4].id },
-    { name: "Parallélisme", price: 100000, categoryId: categories[4].id },
-    { name: "Remorquage", price: 150000, categoryId: categories[4].id },
-    { name: "Main d'œuvre (heure)", price: 50000, categoryId: categories[4].id },
+    { name: "Diagnostic électronique", category: "Divers", price: 50000 },
+    { name: "Montage pneus (x4)", category: "Divers", price: 80000, hasQuantity: true },
+    { name: "Équilibrage", category: "Divers", price: 40000 },
+    { name: "Parallélisme", category: "Divers", price: 100000 },
+    { name: "Remorquage", category: "Divers", price: 150000 },
+    { name: "Main d'œuvre (heure)", category: "Divers", price: 50000, hasQuantity: true },
   ];
 
-  await prisma.service.createMany({ data: services });
+  await prisma.serviceCustomisation.createMany({ data: services });
   console.log(`✅ Created ${services.length} services`);
 
   // Vehicles
   const vehicles = [
     // Sport
-    { name: "M4", brand: "BMW", category: "Sport", basePrice: 2500000 },
-    { name: "M3", brand: "BMW", category: "Sport", basePrice: 2300000 },
-    { name: "RS6", brand: "Audi", category: "Sport", basePrice: 3500000 },
-    { name: "RS3", brand: "Audi", category: "Sport", basePrice: 1800000 },
-    { name: "C63 AMG", brand: "Mercedes", category: "Sport", basePrice: 2800000 },
-    { name: "Supra MK5", brand: "Toyota", category: "Sport", basePrice: 2000000 },
-    { name: "370Z", brand: "Nissan", category: "Sport", basePrice: 1500000 },
-    { name: "GT-R R35", brand: "Nissan", category: "Sport", basePrice: 4000000 },
-    { name: "Mustang GT", brand: "Ford", category: "Sport", basePrice: 1800000 },
-    { name: "Camaro SS", brand: "Chevrolet", category: "Sport", basePrice: 1700000 },
+    { name: "BMW M4", category: "Sport" },
+    { name: "BMW M3", category: "Sport" },
+    { name: "Audi RS6", category: "Sport" },
+    { name: "Audi RS3", category: "Sport" },
+    { name: "Mercedes C63 AMG", category: "Sport" },
+    { name: "Toyota Supra MK5", category: "Sport" },
+    { name: "Nissan 370Z", category: "Sport" },
+    { name: "Nissan GT-R R35", category: "Sport" },
+    { name: "Ford Mustang GT", category: "Sport" },
+    { name: "Chevrolet Camaro SS", category: "Sport" },
 
     // SUV
-    { name: "X5 M", brand: "BMW", category: "SUV", basePrice: 3000000 },
-    { name: "RSQ8", brand: "Audi", category: "SUV", basePrice: 4500000 },
-    { name: "GLE 63 AMG", brand: "Mercedes", category: "SUV", basePrice: 4000000 },
-    { name: "Cayenne Turbo", brand: "Porsche", category: "SUV", basePrice: 5000000 },
-    { name: "Urus", brand: "Lamborghini", category: "SUV", basePrice: 8000000 },
-    { name: "Range Rover Sport", brand: "Land Rover", category: "SUV", basePrice: 3500000 },
+    { name: "BMW X5 M", category: "SUV" },
+    { name: "Audi RSQ8", category: "SUV" },
+    { name: "Mercedes GLE 63 AMG", category: "SUV" },
+    { name: "Porsche Cayenne Turbo", category: "SUV" },
+    { name: "Lamborghini Urus", category: "SUV" },
+    { name: "Range Rover Sport", category: "SUV" },
 
     // Supercar
-    { name: "488 GTB", brand: "Ferrari", category: "Supercar", basePrice: 10000000 },
-    { name: "Huracán", brand: "Lamborghini", category: "Supercar", basePrice: 9000000 },
-    { name: "720S", brand: "McLaren", category: "Supercar", basePrice: 12000000 },
-    { name: "911 GT3", brand: "Porsche", category: "Supercar", basePrice: 6000000 },
-    { name: "R8 V10", brand: "Audi", category: "Supercar", basePrice: 5500000 },
+    { name: "Ferrari 488 GTB", category: "Supercar" },
+    { name: "Lamborghini Huracán", category: "Supercar" },
+    { name: "McLaren 720S", category: "Supercar" },
+    { name: "Porsche 911 GT3", category: "Supercar" },
+    { name: "Audi R8 V10", category: "Supercar" },
 
     // Berline
-    { name: "M5", brand: "BMW", category: "Berline", basePrice: 2200000 },
-    { name: "E63 AMG", brand: "Mercedes", category: "Berline", basePrice: 2500000 },
-    { name: "RS7", brand: "Audi", category: "Berline", basePrice: 2800000 },
-    { name: "Charger SRT", brand: "Dodge", category: "Berline", basePrice: 1500000 },
+    { name: "BMW M5", category: "Berline" },
+    { name: "Mercedes E63 AMG", category: "Berline" },
+    { name: "Audi RS7", category: "Berline" },
+    { name: "Dodge Charger SRT", category: "Berline" },
 
     // Classique
-    { name: "Skyline R34", brand: "Nissan", category: "Classique", basePrice: 3500000 },
-    { name: "Supra MK4", brand: "Toyota", category: "Classique", basePrice: 3000000 },
-    { name: "RX-7 FD", brand: "Mazda", category: "Classique", basePrice: 2500000 },
-    { name: "NSX", brand: "Honda", category: "Classique", basePrice: 2800000 },
-    { name: "E30 M3", brand: "BMW", category: "Classique", basePrice: 2000000 },
+    { name: "Nissan Skyline R34", category: "Classique" },
+    { name: "Toyota Supra MK4", category: "Classique" },
+    { name: "Mazda RX-7 FD", category: "Classique" },
+    { name: "Honda NSX", category: "Classique" },
+    { name: "BMW E30 M3", category: "Classique" },
 
     // Compact
-    { name: "Golf R", brand: "Volkswagen", category: "Compact", basePrice: 1200000 },
-    { name: "Civic Type R", brand: "Honda", category: "Compact", basePrice: 1100000 },
-    { name: "Focus RS", brand: "Ford", category: "Compact", basePrice: 1000000 },
-    { name: "A45 AMG", brand: "Mercedes", category: "Compact", basePrice: 1500000 },
-    { name: "RS3 Sportback", brand: "Audi", category: "Compact", basePrice: 1600000 },
+    { name: "Volkswagen Golf R", category: "Compact" },
+    { name: "Honda Civic Type R", category: "Compact" },
+    { name: "Ford Focus RS", category: "Compact" },
+    { name: "Mercedes A45 AMG", category: "Compact" },
+    { name: "Audi RS3 Sportback", category: "Compact" },
   ];
 
   await prisma.vehicle.createMany({ data: vehicles });
@@ -125,26 +114,26 @@ async function main() {
 
   // Collaborations
   const collaborations = [
-    { name: "LSPD", discountType: "percentage" as const, discountValue: 15, isActive: true },
-    { name: "BCSO", discountType: "percentage" as const, discountValue: 15, isActive: true },
-    { name: "EMS", discountType: "percentage" as const, discountValue: 20, isActive: true },
-    { name: "Weazel News", discountType: "percentage" as const, discountValue: 10, isActive: true },
-    { name: "LifeInvader", discountType: "percentage" as const, discountValue: 10, isActive: true },
-    { name: "Taxi", discountType: "fixed" as const, discountValue: 100000, isActive: true },
+    { name: "LSPD", advantageType: "percentage", discountPercent: 15 },
+    { name: "BCSO", advantageType: "percentage", discountPercent: 15 },
+    { name: "EMS", advantageType: "percentage", discountPercent: 20 },
+    { name: "Weazel News", advantageType: "percentage", discountPercent: 10 },
+    { name: "LifeInvader", advantageType: "percentage", discountPercent: 10 },
+    { name: "Taxi", advantageType: "percentage", discountPercent: 5 },
   ];
 
   await prisma.collaboration.createMany({ data: collaborations });
   console.log(`✅ Created ${collaborations.length} collaborations`);
 
-  // Candidature questions
+  // Recruitment questions
   const questions = [
-    { label: "Avez-vous déjà travaillé dans un autre garage sur le serveur ?", order: 1, isActive: true },
-    { label: "Que pensez-vous pouvoir apporter à l'équipe ?", order: 2, isActive: true },
-    { label: "Comment gérez-vous un client mécontent ?", order: 3, isActive: true },
+    { label: "Avez-vous déjà travaillé dans un autre garage sur le serveur ?", fieldName: "experience_garage", sortOrder: 1 },
+    { label: "Que pensez-vous pouvoir apporter à l'équipe ?", fieldName: "apport_equipe", sortOrder: 2 },
+    { label: "Comment gérez-vous un client mécontent ?", fieldName: "gestion_client", sortOrder: 3 },
   ];
 
-  await prisma.candidatureQuestion.createMany({ data: questions });
-  console.log(`✅ Created ${questions.length} candidature questions`);
+  await prisma.recruitmentQuestion.createMany({ data: questions });
+  console.log(`✅ Created ${questions.length} recruitment questions`);
 
   console.log("\n🎉 Seed completed successfully!");
 }

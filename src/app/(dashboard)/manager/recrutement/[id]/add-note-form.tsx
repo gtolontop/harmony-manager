@@ -23,7 +23,9 @@ export function AddNoteForm({ candidatureId }: AddNoteFormProps) {
     }
 
     startTransition(async () => {
-      const result = await addCandidatureNote(candidatureId, content.trim());
+      const formData = new FormData();
+      formData.set("content", content.trim());
+      const result = await addCandidatureNote(candidatureId, formData);
       if (result.success) {
         toast.success("Note ajoutée");
         setContent("");

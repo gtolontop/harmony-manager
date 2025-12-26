@@ -33,9 +33,9 @@ interface ServiceActionsProps {
     id: string;
     name: string;
     price: number;
-    categoryId: string | null;
+    category: string | null;
   };
-  categories: { id: string; name: string }[];
+  categories: string[];
 }
 
 export function ServiceActions({ service, categories }: ServiceActionsProps) {
@@ -43,7 +43,7 @@ export function ServiceActions({ service, categories }: ServiceActionsProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editName, setEditName] = useState(service.name);
   const [editPrice, setEditPrice] = useState(service.price.toString());
-  const [editCategory, setEditCategory] = useState(service.categoryId || "none");
+  const [editCategory, setEditCategory] = useState(service.category || "none");
 
   const handleEdit = () => {
     const priceNum = parseFloat(editPrice);
@@ -56,7 +56,7 @@ export function ServiceActions({ service, categories }: ServiceActionsProps) {
       const result = await updateService(service.id, {
         name: editName.trim(),
         price: priceNum,
-        categoryId: editCategory === "none" ? undefined : editCategory,
+        category: editCategory === "none" ? undefined : editCategory,
       });
 
       if (result.success) {
@@ -137,8 +137,8 @@ export function ServiceActions({ service, categories }: ServiceActionsProps) {
                 <SelectContent>
                   <SelectItem value="none">Aucune</SelectItem>
                   {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
                     </SelectItem>
                   ))}
                 </SelectContent>
