@@ -5,8 +5,7 @@ export default async function Home() {
   const session = await auth();
 
   if (session?.user) {
-    // Redirect to dashboard based on role
-    redirect("/compta/facture");
+    redirect("/accueil");
   } else {
     redirect("/login");
   }

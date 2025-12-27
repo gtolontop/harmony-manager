@@ -47,10 +47,10 @@ export default async function RecrutementPage() {
   // Only clients can apply
   if (session.user.role !== "client") {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Recrutement</CardTitle>
+            <CardTitle className="text-xl">Recrutement</CardTitle>
             <CardDescription>
               Vous êtes déjà membre de l&apos;équipe Harmony Motors !
             </CardDescription>
@@ -69,10 +69,10 @@ export default async function RecrutementPage() {
   // Check if recruitment is closed
   if (!settings.isOpen) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xl">
               Recrutement
               <Badge variant="destructive">Fermé</Badge>
             </CardTitle>
@@ -97,11 +97,11 @@ export default async function RecrutementPage() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Rejoindre Harmony Motors</h1>
-        <p className="text-muted-foreground mt-2">
-          Vous souhaitez faire partie de notre équipe ? Remplissez le formulaire ci-dessous.
+        <h1 className="text-2xl font-semibold tracking-tight">Rejoindre Harmony Motors</h1>
+        <p className="text-muted-foreground mt-1">
+          Remplissez le formulaire pour postuler
         </p>
       </div>
 
