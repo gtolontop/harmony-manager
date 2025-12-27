@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { Navbar } from "@/components/layout/navbar";
+import { Sidebar } from "@/components/layout/sidebar";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 export default async function DashboardLayout({
   children,
@@ -14,9 +15,19 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar user={session.user} />
-      <main className="flex-1 container py-6">{children}</main>
+    <div className="min-h-screen bg-background">
+      {/* Sidebar - Desktop */}
+      <div className="hidden lg:block">
+        <Sidebar user={session.user} />
+      </div>
+
+      {/* Mobile Navigation */}
+      <MobileNav user={session.user} />
+
+      {/* Main Content */}
+      <main className="lg:pl-64">
+        <div className="px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+      </main>
     </div>
   );
 }
