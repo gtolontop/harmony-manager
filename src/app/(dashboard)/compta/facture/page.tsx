@@ -29,11 +29,11 @@ export default async function FacturePage() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Nouvelle Facture</h1>
-        <p className="text-muted-foreground mt-2">
-          Créez une facture pour un client en sélectionnant les services effectués.
+        <h1 className="text-2xl font-semibold tracking-tight">Nouvelle Facture</h1>
+        <p className="text-muted-foreground mt-1">
+          Créez une facture en sélectionnant les services effectués
         </p>
       </div>
 
