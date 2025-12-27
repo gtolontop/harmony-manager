@@ -421,12 +421,12 @@ export function InvoiceForm({
           {/* Collaboration select */}
           <div className="space-y-2">
             <Label>Collaboration (optionnel)</Label>
-            <Select value={selectedCollaboration} onValueChange={setSelectedCollaboration}>
+            <Select value={selectedCollaboration || "none"} onValueChange={(val) => setSelectedCollaboration(val === "none" ? "" : val)}>
               <SelectTrigger>
                 <SelectValue placeholder="Aucune collaboration" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucune</SelectItem>
+                <SelectItem value="none">Aucune</SelectItem>
                 {collaborations.map((collab) => (
                   <SelectItem key={collab.id} value={collab.id}>
                     {collab.name} (-{collab.discountPercent}%)
