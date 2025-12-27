@@ -1,17 +1,10 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 // Routes that don't require authentication
 const publicRoutes = ["/login", "/api/auth"];
 
-// Routes that require specific roles
-const roleRoutes: Record<string, string[]> = {
-  "/admin": ["superadmin"],
-  "/manager": ["chef_equipe", "patron", "superadmin"],
-  "/compta/historique": ["chef_equipe", "patron", "superadmin"],
-};
-
-export default auth((req) => {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public routes
@@ -19,25 +12,20 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // Check if user is authenticated
-  if (!req.auth?.user) {
+  // Check for session cookie (authjs.session-token or __Secure-authjs.session-token)
+  const sessionToken =
+    req.cookies.get("authjs.session-token")?.value ||
+    req.cookies.get("__Secure-authjs.session-token")?.value;
+
+  if (!sessionToken) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Check role-based access
-  for (const [route, allowedRoles] of Object.entries(roleRoutes)) {
-    if (pathname.startsWith(route)) {
-      const userRole = req.auth.user.role;
-      if (!allowedRoles.includes(userRole)) {
-        return NextResponse.redirect(new URL("/unauthorized", req.url));
-      }
-    }
-  }
-
+  // Role checks will be done in the actual pages/API routes with auth()
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
