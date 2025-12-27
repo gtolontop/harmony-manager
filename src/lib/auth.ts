@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import type { Role } from "@prisma/client";
 
 // Super-admin Discord IDs
-const SUPERADMIN_IDS = ["849326197351776316", "788452602286964796"];
+const SUPERADMIN_IDS = ["849326197351776316", "788452602286964796", "746700907248484393"];
 
 declare module "next-auth" {
   interface Session {
@@ -64,8 +64,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           include: { user: true },
         });
 
+        // Determine if user should be superadmin
+        const shouldBeSuperadmin = SUPERADMIN_IDS.includes(discordProfile.id);
+
         if (existingAccount) {
-          // Update existing user's info
+          // Update existing user's info (and promote to superadmin if in list)
           await db.user.update({
             where: { id: existingAccount.userId },
             data: {
@@ -75,6 +78,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               image: discordProfile.avatar
                 ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
                 : null,
+              ...(shouldBeSuperadmin && { role: "superadmin" }),
             },
           });
         } else {
@@ -84,7 +88,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           if (existingUser) {
-            // Update existing user
+            // Update existing user (and promote to superadmin if in list)
             await db.user.update({
               where: { id: existingUser.id },
               data: {
@@ -94,13 +98,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 image: discordProfile.avatar
                   ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
                   : null,
+                ...(shouldBeSuperadmin && { role: "superadmin" }),
               },
             });
             // Link user id so adapter uses this user
             user.id = existingUser.id;
           } else {
             // New user - set role and discordId, adapter will create the user
-            const role = SUPERADMIN_IDS.includes(discordProfile.id) ? "superadmin" : "client";
+            const role = shouldBeSuperadmin ? "superadmin" : "client";
             user.discordId = discordProfile.id;
             user.username = discordProfile.username;
             user.displayName = discordProfile.global_name || discordProfile.username;
