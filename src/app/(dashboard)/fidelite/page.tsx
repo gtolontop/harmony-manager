@@ -18,11 +18,11 @@ export default async function FidelitePage() {
   const canAddOperation = isStaff(session.user.role);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Programme Fidélité</h1>
-        <p className="text-muted-foreground mt-2">
-          Cumulez des points à chaque passage et profitez de réductions exclusives.
+        <h1 className="text-2xl font-semibold tracking-tight">Programme Fidélité</h1>
+        <p className="text-muted-foreground mt-1">
+          Cumulez des points et profitez de réductions exclusives
         </p>
       </div>
 
